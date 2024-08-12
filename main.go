@@ -12,11 +12,21 @@ func main() {
 	api := internals.ReadConfig("requests.json")
 
 	var waitGroup sync.WaitGroup
-	count := 1
 	var mutex sync.Mutex
+
+	count := 1
+	cutoff := int(api.Requests / api.Batches)
+	batchCounter := 1
+
 	for index := range api.Urls {
 		fmt.Printf("Currently requesting url %v\n", api.Urls[index].Path)
 		for i := 0; i < api.Requests; i++ {
+
+			if i == cutoff*batchCounter {
+				fmt.Printf("dRegistered goroutines in Batch %v \n", batchCounter)
+				batchCounter += 1
+				waitGroup.Wait()
+			}
 			waitGroup.Add(1)
 			go func() {
 				defer func() {

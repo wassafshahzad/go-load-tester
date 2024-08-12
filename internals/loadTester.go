@@ -21,9 +21,10 @@ const (
 var clientWithTimeOut http.Client
 
 type Urls struct {
-	Urls     []entities    `json:"urls"`
 	Requests int           `json:"requests"`
+	Batches  int           `json:"batches"`
 	Timeout  time.Duration `json:"timeout"`
+	Urls     []entities    `json:"urls"`
 }
 
 type entities struct {
