@@ -12,21 +12,25 @@ func main() {
 	api := internals.ReadConfig("requests.json")
 
 	var waitGroup sync.WaitGroup
-	c := 1
+	count := 1
+	var mutex sync.Mutex
 	for index := range api.Urls {
+		fmt.Printf("Currently requesting url %v\n", api.Urls[index].Path)
 		for i := 0; i < api.Requests; i++ {
 			waitGroup.Add(1)
 			go func() {
 				defer func() {
+					mutex.Lock()
+					fmt.Printf("Requests completed %v/%v \r", count, api.Requests)
+					count += 1
+					mutex.Unlock()
 					waitGroup.Done()
-					fmt.Printf("Done please %v \n", i)
 				}()
 				internals.CallUrl(&api.Urls[index])
-				fmt.Printf("Calling thread %v \n", i)
 			}()
 		}
 	}
 	waitGroup.Wait()
 	d, f := api.Urls[0].GetRequestsResult()
-	fmt.Printf("Total Requests Dropped %v Failed %v", d, f)
+	fmt.Printf("\nTotal Requests Dropped %v Failed %v", d, f)
 }
