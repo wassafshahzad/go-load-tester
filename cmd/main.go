@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/wassafshahzad/go-load-tester/internals"
@@ -9,7 +10,14 @@ import (
 
 func main() {
 
-	api := internals.ReadConfig("requests.json")
+	arguments := os.Args
+
+	if len(arguments) < 2 {
+		panic("Config file required")
+	}
+
+	location := arguments[1]
+	api := internals.ReadConfig(location)
 
 	var waitGroup sync.WaitGroup
 	var mutex sync.Mutex
@@ -23,7 +31,7 @@ func main() {
 		for i := 0; i < api.Requests; i++ {
 
 			if i == cutoff*batchCounter {
-				fmt.Printf("dRegistered goroutines in Batch %v \n", batchCounter)
+				fmt.Printf("Registered goroutines in Batch %v \n", batchCounter)
 				batchCounter += 1
 				waitGroup.Wait()
 			}

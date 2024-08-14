@@ -48,6 +48,8 @@ func init() {
 	}
 }
 
+// This can be a method
+// No need to create a new request every time pass the request as an argument
 func CallUrl(entity *entities) {
 	req, err := http.NewRequest(string(entity.HttpMethod), entity.Path, nil)
 	req.Header.Set("Content-Type", "application/json")
