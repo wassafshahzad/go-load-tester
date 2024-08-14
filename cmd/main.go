@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
-	"github.com/wassafshahzad/go-load-tester/internals"
+	"github.com/wassafshahzad/go-load-tester/internal"
 )
 
 func main() {
@@ -17,10 +19,18 @@ func main() {
 	}
 
 	location := arguments[1]
-	api := internals.ReadConfig(location)
+	api, err := internal.ReadConfig(location)
+
+	if err != nil {
+		panic("Error reading json file.")
+	}
 
 	var waitGroup sync.WaitGroup
 	var mutex sync.Mutex
+
+	clientWithTimeOut := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 
 	count := 1
 	cutoff := int(api.Requests / api.Batches)
@@ -44,7 +54,7 @@ func main() {
 					mutex.Unlock()
 					waitGroup.Done()
 				}()
-				internals.CallUrl(&api.Urls[index])
+				internal.CallUrl(&api.Urls[index], clientWithTimeOut)
 			}()
 		}
 	}

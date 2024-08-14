@@ -1,4 +1,4 @@
-package internals
+package internal
 
 import (
 	"encoding/json"
@@ -6,30 +6,19 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 )
 
 type HttpMethods string
 
-const (
-	POST  HttpMethods = "POST"
-	GET   HttpMethods = "GET"
-	PUT   HttpMethods = "PUT"
-	PATCH HttpMethods = "PATCH"
-)
-
-var clientWithTimeOut http.Client
-
 type Urls struct {
-	Requests int           `json:"requests"`
-	Batches  int           `json:"batches"`
-	Timeout  time.Duration `json:"timeout"`
-	Urls     []entities    `json:"urls"`
+	Requests int        `json:"requests"`
+	Batches  int        `json:"batches"`
+	Urls     []entities `json:"urls"`
 }
 
 type entities struct {
-	Path       string      `json:"path"`
-	HttpMethod HttpMethods `json:"method"`
+	Path       string `json:"path"`
+	HttpMethod string `json:"method"`
 	results    requestResult
 }
 
@@ -42,23 +31,18 @@ type requestResult struct {
 	failCount int
 }
 
-func init() {
-	clientWithTimeOut = http.Client{
-		Timeout: 5 * time.Second,
-	}
-}
-
 // This can be a method
 // No need to create a new request every time pass the request as an argument
-func CallUrl(entity *entities) {
+func CallUrl(entity *entities, client *http.Client) {
 	req, err := http.NewRequest(string(entity.HttpMethod), entity.Path, nil)
-	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
 		panic(err)
 	}
 
-	res, err := clientWithTimeOut.Do(req)
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := client.Do(req)
 
 	if err != nil {
 		entity.results.dropCount += 1
@@ -73,13 +57,14 @@ func CallUrl(entity *entities) {
 	}
 }
 
-func ReadConfig(name string) *Urls {
+func ReadConfig(name string) (*Urls, error) {
 	jsonFile, err := os.Open(name)
-	var apis Urls
-
 	if err != nil {
 		fmt.Println("File not found.")
+		return nil, err
 	}
+
+	var apis Urls
 
 	defer jsonFile.Close()
 	byteValue, _ := io.ReadAll(jsonFile)
@@ -89,9 +74,5 @@ func ReadConfig(name string) *Urls {
 		apis.Requests = 100
 	}
 
-	if apis.Timeout != 0 {
-		clientWithTimeOut.Timeout = apis.Timeout * time.Second
-	}
-
-	return &apis
+	return &apis, nil
 }
