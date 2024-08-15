@@ -20,3 +20,16 @@ Example of config file structure.
 
 ```
 
+A sample config file is given in the repo.
+
+#### Commands
+
+If you cloned the repo, running the following command will do.
+
+```
+go run cmd\main.go {path to config file}
+```
+
+If you download the release, You can just run it by following steps below.
+- Open terminal in the location of the .exe
+- run `{name of the binary}.exe {path to config file}
